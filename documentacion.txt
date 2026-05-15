@@ -1,0 +1,384 @@
+═══════════════════════════════════════════════════════════════════════════════
+                     DOCUMENTACIÓN DEL SISTEMA MEDISALUD
+                  Sistema de Gestión de Consultorio Médico
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Identificación de Clases
+
+A partir del contexto descrito, identifique todas las clases que conforman el sistema. Para cada clase complete la siguiente tabla:
+
+#	Nombre de la Clase	Tipo	Descripción y Rol en el Sistema
+1	Medico	Abstracta	Clase base que representa la información general de los médicos del consultorio. Sirve como clase padre para médicos generales y especialistas. Gestiona atributos comunes como número de registro, nombre, teléfono y correo.
+2	MedicoGeneral	Concreta	Representa a los médicos generales. Hereda de Medico y añade atributos propios como años de experiencia y si atiende urgencias. Implementa las tarifas específicas para médicos generales.
+3	MedicoEspecialista	Concreta	Representa a los médicos especialistas. Hereda de Medico y añade atributos como especialidad y número de consultorio. Implementa las tarifas específicas para médicos especialistas.
+4	Paciente	Abstracta	Clase base que representa la información general de todos los pacientes. Sirve como clase padre para los diferentes tipos de pacientes. Gestiona atributos comunes como identificación, nombre, fecha de nacimiento, teléfono y EPS.
+5	PacientePediatrico	Concreta	Representa a pacientes menores de 14 años. Hereda de Paciente y añade atributos específicos como nombre del acudiente y parentesco. Aplica descuento del 25%.
+6	PacienteAdulto	Concreta	Representa a pacientes entre 14 y 59 años. Hereda de Paciente y añade atributos como ocupación y seguro médico privado. No aplica descuento.
+7	PacienteAdultoMayor	Concreta	Representa a pacientes de 60 años en adelante. Hereda de Paciente y añade atributos como nombre del cuidador y si requiere atención domiciliaria. Aplica descuento del 30%.
+8	Cita	Concreta	Representa la cita médica entre un paciente y un médico en una fecha y franja horaria determinada. Gestiona el estado de la cita (pendiente/atendida/cancelada).
+9	Recibo	Concreta	Genera los recibos de atención médica con toda la información del paciente, médico, tarifa base, descuento aplicado y valor final a pagar.
+10	MedicoDAO	Concreta	Administra la persistencia de médicos en archivos de texto (medicos_generales.txt y medicos_especialistas.txt).
+11	PacienteDAO	Concreta	Administra la persistencia de pacientes en archivos de texto (pacientes_pediatricos.txt, pacientes_adultos.txt, pacientes_adultos_mayores.txt).
+12	CitaDAO	Concreta	Administra la persistencia de citas en archivos de texto (citas.txt).
+13	ReciboDAO	Concreta	Administra la persistencia de recibos en archivos de texto (recibos.txt).
+14	ConsultorioService	Concreta	Contiene toda la lógica de negocio del consultorio. Gestiona médicos, pacientes, citas, recibos y generación de reportes diarios.
+15	ConsultorioView	Concreta	Clase principal que maneja la interfaz de usuario mediante menú de consola. Coordina todas las operaciones del sistema.
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+2. Definición de Atributos, Métodos y Responsabilidades
+
+Para cada clase identificada en el punto anterior, complete una tabla con el siguiente formato. Repita la estructura para cada clase.
+
+
+Clase:	Medico
+Tipo:	Abstracta
+Responsabilidad principal:	Representa la información general de los médicos del consultorio. Sirve como clase base para médicos generales y especialistas.
+
+Atributo	Tipo de Dato	Descripción
+numeroRegistroMedico	String	Número único de registro médico del profesional
+nombreCompleto	String	Nombre completo del médico
+numeroTelefono	int	Número de teléfono de contacto del médico
+correoElectronico	String	Correo electrónico del médico
+
+Método	Tipo de Retorno	Descripción
+obtenerTarifa(double)	Double	Calcula la tarifa de la consulta según la franja horaria (abstracto)
+getTipo()	String	Retorna el tipo de médico (abstracto)
+toArchivo()	String	Genera línea de texto para guardar en archivo
+desdeArchivo()	Medico	Crea un médico desde una línea de archivo (estático)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	MedicoGeneral
+Tipo:	Concreta
+Responsabilidad principal:	Representa a los médicos generales con sus años de experiencia y si atienden urgencias. Gestiona las tarifas específicas de médico general.
+
+Atributo	Tipo de Dato	Descripción
+aniosExperiencia	String	Años de experiencia del médico general
+atiendeUrgencias	boolean	Indica si el médico atiende urgencias (true/false)
+
+Método	Tipo de Retorno	Descripción
+obtenerTarifa(String)	Double	Retorna $25.000 (mañana), $30.000 (tarde), $40.000 (noche)
+getTipo()	String	Retorna "General"
+toArchivo()	String	Genera línea de texto para guardar en archivo
+toString()	String	Muestra datos completos del médico general
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	MedicoEspecialista
+Tipo:	Concreta
+Responsabilidad principal:	Representa a los médicos especialistas con su especialidad y número de consultorio. Gestiona las tarifas específicas de médico especialista.
+
+Atributo	Tipo de Dato	Descripción
+especialidad	String	Especialidad del médico (cardiología, dermatología, pediatría, etc.)
+numeroConsultorio	String	Número de consultorio asignado al especialista
+
+Método	Tipo de Retorno	Descripción
+obtenerTarifa(String)	Double	Retorna $60.000 (mañana), $70.000 (tarde), $90.000 (noche)
+getTipo()	String	Retorna "Especialista"
+toArchivo()	String	Genera línea de texto para guardar en archivo
+toString()	String	Muestra datos completos del especialista
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	Paciente
+Tipo:	Abstracta
+Responsabilidad principal:	Representa la información general de todos los pacientes del consultorio. Sirve como base para los diferentes tipos de pacientes.
+
+Atributo	Tipo de Dato	Descripción
+numeroIdentificacion	String	Número de identificación del paciente
+nombreCompleto	String	Nombre completo del paciente
+fechaNacimiento	LocalDate	Fecha de nacimiento del paciente
+numeroTelefono	int	Número de teléfono del paciente
+eps	String	EPS a la que pertenece el paciente
+
+Método	Tipo de Retorno	Descripción
+getEdad()	int	Calcula la edad del paciente según el año actual
+getDescuento()	Double	Retorna el porcentaje de descuento según el tipo de paciente (abstracto)
+getTipoPaciente()	String	Retorna el tipo específico de paciente (abstracto)
+toArchivo()	String	Genera línea de texto para guardar en archivo
+desdeArchivo()	Paciente	Crea un paciente desde una línea de archivo (estático)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	PacientePediatrico
+Tipo:	Concreta
+Responsabilidad principal:	Almacena información de pacientes menores de 14 años. Gestiona la información del acudiente y aplica el descuento del 25%.
+
+Atributo	Tipo de Dato	Descripción
+nombreAcudiente	String	Nombre del adulto responsable del menor
+parentesco	String	Parentesco del acudiente con el paciente (padre, madre, tío, etc.)
+
+Método	Tipo de Retorno	Descripción
+getDescuento()	Double	Retorna 0.25 (25% de descuento)
+getTipoPaciente()	String	Retorna "Pediátrico"
+toArchivo()	String	Genera línea de texto para guardar en archivo
+toString()	String	Muestra datos del paciente pediátrico
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	PacienteAdulto
+Tipo:	Concreta
+Responsabilidad principal:	Almacena información de pacientes entre 14 y 59 años. Gestiona la ocupación y el seguro médico privado. No aplica descuento.
+
+Atributo	Tipo de Dato	Descripción
+ocupacion	String	Ocupación laboral del paciente adulto
+tieneSeguroPrivado	boolean	Indica si el paciente cuenta con seguro médico privado
+
+Método	Tipo de Retorno	Descripción
+getDescuento()	Double	Retorna 0.0 (sin descuento)
+getTipoPaciente()	String	Retorna "Adulto"
+toArchivo()	String	Genera línea de texto para guardar en archivo
+toString()	String	Muestra datos del paciente adulto
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	PacienteAdultoMayor
+Tipo:	Concreta
+Responsabilidad principal:	Almacena información de pacientes de 60 años en adelante. Gestiona la información del cuidador y aplica el descuento del 30%.
+
+Atributo	Tipo de Dato	Descripción
+nombreCuidador	String	Nombre del cuidador o familiar responsable del adulto mayor
+requiereAtencionDomiciliaria	boolean	Indica si el paciente requiere atención a domicilio
+
+Método	Tipo de Retorno	Descripción
+getDescuento()	Double	Retorna 0.30 (30% de descuento)
+getTipoPaciente()	String	Retorna "Adulto Mayor"
+toArchivo()	String	Genera línea de texto para guardar en archivo
+toString()	String	Muestra datos del paciente adulto mayor
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	Cita
+Tipo:	Concreta
+Responsabilidad principal:	Representa la cita médica entre un paciente y un médico en una fecha y franja horaria determinada. Gestiona el estado de la cita.
+
+Atributo	Tipo de Dato	Descripción
+id	String	Identificador único de la cita
+paciente	Paciente	Paciente que requiere la atención médica
+medico	Medico	Médico que atenderá la consulta
+fecha	LocalDate	Fecha de la cita
+franjaHoraria	String	Franja horaria de atención (mañana/tarde/noche)
+estado	String	Estado de la cita (pendiente/atendida/cancelada)
+
+Método	Tipo de Retorno	Descripción
+completar()	void	Cambia el estado de la cita a "atendida"
+cancelar()	void	Cambia el estado de la cita a "cancelada"
+toArchivo()	String	Genera línea de texto para guardar en archivo
+toString()	String	Muestra información resumida de la cita
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	Recibo
+Tipo:	Concreta
+Responsabilidad principal:	Genera los recibos de atención médica con información completa del paciente, médico, tarifa aplicada, descuento y valor final a pagar.
+
+Atributo	Tipo de Dato	Descripción
+id	String	Identificador único del recibo
+cita	Cita	Cita asociada al recibo
+tarifaBase	double	Valor de la consulta según tipo de médico y franja
+porcentajeDescuento	double	Porcentaje de descuento aplicado
+valorDescuento	double	Valor monetary del descuento aplicado
+valorFinal	double	Total a pagar después del descuento
+fechaGeneracion	LocalDateTime	Fecha y hora de generación del recibo
+
+Método	Tipo de Retorno	Descripción
+generarRecibo()	String	Genera el formato completo del recibo de atención médica
+toArchivo()	String	Genera línea de texto para guardar en archivo
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	MedicoDAO
+Tipo:	Concreta
+Responsabilidad principal:	Administra la lectura y escritura de médicos en archivos de texto plano.
+
+Atributo	Tipo de Dato	Descripción
+ARCHIVO_GENERALES	String	Ruta del archivo de médicos generales
+ARCHIVO_ESPECIALISTAS	String	Ruta del archivo de médicos especialistas
+
+Método	Tipo de Retorno	Descripción
+cargarMedicos()	List<Medico>	Lee todos los médicos desde los archivos y los retorna
+cargarDeArchivo()	List<Medico>	Carga médicos de un archivo específico
+guardarMedico()	void	Agrega un nuevo médico al archivo correspondiente
+actualizarMedicos()	void	reescribe todos los médicos en sus archivos
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	PacienteDAO
+Tipo:	Concreta
+Responsabilidad principal:	Administra la lectura y escritura de pacientes en archivos de texto plano.
+
+Atributo	Tipo de Dato	Descripción
+ARCHIVO_PEDIATRICOS	String	Ruta del archivo de pacientes pediátricos
+ARCHIVO_ADULTOS	String	Ruta del archivo de pacientes adultos
+ARCHIVO_ADULTOS_MAYORES	String	Ruta del archivo de pacientes adultos mayores
+
+Método	Tipo de Retorno	Descripción
+cargarPacientes()	List<Paciente>	Lee todos los pacientes desde los archivos y los retorna
+cargarDeArchivo()	List<Paciente>	Carga pacientes de un archivo específico
+guardarPaciente()	void	Agrega un nuevo paciente al archivo correspondiente
+actualizarPacientes()	void	reescribe todos los pacientes en sus archivos
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	CitaDAO
+Tipo:	Concreta
+Responsabilidad principal:	Administra la lectura y escritura de citas en archivos de texto plano.
+
+Atributo	Tipo de Dato	Descripción
+ARCHIVO_CITAS	String	Ruta del archivo de citas
+
+Método	Tipo de Retorno	Descripción
+cargarCitas()	List<Cita>	Lee todas las citas desde el archivo y las retorna
+guardarCita()	void	Agrega una nueva cita al archivo
+actualizarCitas()	void	reescribe todas las citas en el archivo
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	ReciboDAO
+Tipo:	Concreta
+Responsabilidad principal:	Administra la lectura y escritura de recibos en archivos de texto plano.
+
+Atributo	Tipo de Dato	Descripción
+ARCHIVO_RECIBOS	String	Ruta del archivo de recibos
+
+Método	Tipo de Retorno	Descripción
+cargarRecibos()	List<Recibo>	Lee todos los recibos desde el archivo y los retorna
+guardarRecibo()	void	Agrega un nuevo recibo al archivo
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	ConsultorioService
+Tipo:	Concreta
+Responsabilidad principal:	Contiene toda la lógica de negocio del consultorio. Gestiona el registro de médicos, pacientes, citas, completado de citas, cálculo de tarifas y descuentos, y generación de reportes diarios.
+
+Atributo	Tipo de Dato	Descripción
+medicos	List<Medico>	Lista de médicos en memoria
+pacientes	List<Paciente>	Lista de pacientes en memoria
+citas	List<Cita>	Lista de citas en memoria
+recibos	List<Recibo>	Lista de recibos en memoria
+medicoDAO	MedicoDAO	Objeto para persistencia de médicos
+pacienteDAO	PacienteDAO	Objeto para persistencia de pacientes
+citaDAO	CitaDAO	Objeto para persistencia de citas
+reciboDAO	ReciboDAO	Objeto para persistencia de recibos
+
+Método	Tipo de Retorno	Descripción
+cargarDatos()	void	Carga datos desde archivos al iniciar el sistema
+registrarMedicoGeneral()	void	Registra un nuevo médico general
+registrarMedicoEspecialista()	void	Registra un nuevo médico especialista
+registrarPacientePediatrico()	void	Registra un nuevo paciente pediátrico
+registrarPacienteAdulto()	void	Registra un nuevo paciente adulto
+registrarPacienteAdultoMayor()	void	Registra un nuevo paciente adulto mayor
+registrarCita()	String[]	Registra una nueva cita validando reglas de negocio
+completarCita()	String	Completa una cita y genera el recibo de pago
+generarReporteDiario()	String	Genera el reporte del día con estadísticas completas
+getMedicos()	List<Medico>	Retorna la lista de médicos
+getPacientes()	List<Paciente>	Retorna la lista de pacientes
+getCitas()	List<Cita>	Retorna la lista de citas
+getCitasPendientes()	List<Cita>	Retorna solo las citas pendientes
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Clase:	ConsultorioView
+Tipo:	Concreta
+Responsabilidad principal:	Maneja la interfaz de usuario mediante menú de consola. Coordina todas las operaciones del sistema permitiendo al usuario registrar médicos, pacientes, citas, completar citas y generar reportes.
+
+Atributo	Tipo de Dato	Descripción
+service	ConsultorioService	Objeto que contiene la lógica de negocio
+scanner	Scanner	Objeto para leer entrada del usuario
+
+Método	Tipo de Retorno	Descripción
+iniciar()	void	Inicia el menú principal del sistema en un ciclo
+mostrarMenu()	void	Muestra las opciones del menú principal
+menuRegistrarMedico()	void	Submenú para registrar médicos (general/especialista)
+menuRegistrarPaciente()	void	Submenú para registrar pacientes (pediátrico/adulto/adulto mayor)
+menuRegistrarCita()	void	Submenú para registrar nuevas citas
+menuCompletarCita()	void	Submenú para completar citas y generar recibos
+mostrarReporte()	void	Muestra el reporte diario en consola
+listarMedicos()	void	Lista todos los médicos registrados
+listarPacientes()	void	Lista todos los pacientes registrados
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+3. Estructura del Proyecto (Arquitectura por Capas)
+
+El sistema está organizado en las siguientes capas:
+
+CAPA MODEL (model/)
+├── Medico.java              - Clase abstracta base para médicos
+├── MedicoGeneral.java       - Médico general con experiencia y urgencias
+├── MedicoEspecialista.java  - Médico especialista con especialidad y consultorio
+├── Paciente.java            - Clase abstracta base para pacientes
+├── PacientePediatrico.java  - Paciente menor de 14 años (25% descuento)
+├── PacienteAdulto.java      - Paciente de 14-59 años (sin descuento)
+├── PacienteAdultoMayor.java - Paciente de 60+ años (30% descuento)
+├── Cita.java                - Cita médica entre paciente y médico
+└── Recibo.java              - Recibo de atención con tarifas y descuentos
+
+CAPA DAO (dao/)
+├── MedicoDAO.java           - Persistencia de médicos
+├── PacienteDAO.java         - Persistencia de pacientes
+├── CitaDAO.java             - Persistencia de citas
+└── ReciboDAO.java           - Persistencia de recibos
+
+CAPA SERVICE (service/)
+└── ConsultorioService.java  - Lógica de negocio del consultorio
+
+CAPA VIEW (view/)
+└── ConsultorioView.java     - Interfaz de usuario (menú consola)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+4. Reglas de Negocio Implementadas
+
+• Horario de atención: Lunes a viernes, 7:00 AM - 8:00 PM
+• Franjas horarias: Mañana (7-12), Tarde (12-17), Noche (17-20)
+• Capacidad máxima: 8 pacientes por médico por franja horaria
+• Duración de consulta: 30 minutos
+• Un paciente no puede tener dos citas activas con el mismo médico el mismo día
+
+TARIFAS DE CONSULTA:
+• Médico General - Mañana: $25,000 | Tarde: $30,000 | Noche: $40,000
+• Médico Especialista - Mañana: $60,000 | Tarde: $70,000 | Noche: $90,000
+
+DESCUENTOS POR TIPO DE PACIENTE:
+• Paciente Pediátrico: 25% de descuento
+• Paciente Adulto: Sin descuento
+• Paciente Adulto Mayor: 30% de descuento
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+5. Persistencia de Archivos
+
+El sistema utiliza los siguientes archivos de texto plano:
+• medicos_generales.txt    - Almacena médicos generales
+• medicos_especialistas.txt - Almacena médicos especialistas
+• pacientes_pediatricos.txt - Almacena pacientes pediátricos
+• pacientes_adultos.txt    - Almacena pacientes adultos
+• pacientes_adultos_mayores.txt - Almacena pacientes adultos mayores
+• citas.txt                - Almacena todas las citas
+• recibos.txt              - Almacena todos los recibos generados
+• reporte.txt              - Exporta el reporte diario (sobreescribe)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              FIN DE LA DOCUMENTACIÓN
+═══════════════════════════════════════════════════════════════════════════════
